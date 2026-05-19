@@ -1,7 +1,7 @@
 import React from 'react';
 import { db } from '../firebase/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
-import { Clock, CheckCircle2, CircleDashed } from 'lucide-react';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { Clock, CheckCircle2, CircleDashed, Trash2 } from 'lucide-react';
 
 const statusConfig = {
   'Planned': {
@@ -34,6 +34,18 @@ const TaskCard = ({ task }) => {
     }
   };
 
+  const handleDeleteTask = async () => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    
+    try {
+      const taskRef = doc(db, 'tasks', task.id);
+      await deleteDoc(taskRef);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
+  };
+
+
   const config = statusConfig[task.status] || statusConfig['Planned'];
   const StatusIcon = config.icon;
   
@@ -61,7 +73,7 @@ const TaskCard = ({ task }) => {
         </div>
       </div>
       
-      <div className="flex items-center self-end sm:self-auto">
+      <div className="flex items-center self-end sm:self-auto space-x-2">
         <select
           value={task.status}
           onChange={handleStatusChange}
@@ -71,6 +83,13 @@ const TaskCard = ({ task }) => {
           <option value="In Progress">In Progress</option>
           <option value="Complete">Complete</option>
         </select>
+        <button
+          onClick={handleDeleteTask}
+          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+          title="Delete task"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
       </div>
     </div>
   );
