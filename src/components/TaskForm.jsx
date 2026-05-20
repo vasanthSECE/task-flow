@@ -5,6 +5,7 @@ import { PlusCircle } from 'lucide-react';
 
 const TaskForm = ({ userId }) => {
   const [title, setTitle] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,10 +20,12 @@ const TaskForm = ({ userId }) => {
       await addDoc(collection(db, 'tasks'), {
         title: title.trim(),
         status: 'Planned',
+        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
         createdAt: serverTimestamp(),
         userId: userId
       });
       setTitle('');
+      setDueDate('');
     } catch (err) {
       console.error('Error adding task:', err);
       setError('Failed to add task. Please try again.');
@@ -32,15 +35,22 @@ const TaskForm = ({ userId }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-6">
-      <h2 className="text-lg font-semibold text-slate-800 mb-4">Add New Task</h2>
+    <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 mb-6 transition-colors">
+      <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Add New Task</h2>
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="What needs to be done?"
-          className="flex-1 rounded-md border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          className="flex-1 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-400"
+          disabled={isSubmitting}
+        />
+        <input
+          type="datetime-local"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          className="w-full sm:w-auto rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all [color-scheme:light] dark:[color-scheme:dark]"
           disabled={isSubmitting}
         />
         <button

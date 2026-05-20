@@ -1,23 +1,23 @@
 import React from 'react';
 import { db } from '../firebase/firebase';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { Clock, CheckCircle2, CircleDashed, Trash2 } from 'lucide-react';
+import { Clock, CheckCircle2, CircleDashed, Trash2, CalendarDays, AlertCircle } from 'lucide-react';
 
 const statusConfig = {
   'Planned': {
-    color: 'bg-slate-100 text-slate-700 border-slate-200',
+    color: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700',
     icon: CircleDashed,
-    iconColor: 'text-slate-400'
+    iconColor: 'text-slate-400 dark:text-slate-500'
   },
   'In Progress': {
-    color: 'bg-blue-50 text-blue-700 border-blue-200',
+    color: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/50',
     icon: Clock,
-    iconColor: 'text-blue-500'
+    iconColor: 'text-blue-500 dark:text-blue-400'
   },
   'Complete': {
-    color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    color: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50',
     icon: CheckCircle2,
-    iconColor: 'text-emerald-500'
+    iconColor: 'text-emerald-500 dark:text-emerald-400'
   }
 };
 
@@ -58,18 +58,41 @@ const TaskCard = ({ task }) => {
       }).format(task.createdAt.toDate())
     : 'Just now';
 
+  let formattedDueDate = null;
+  let isOverdue = false;
+  if (task.dueDate) {
+    const due = new Date(task.dueDate);
+    formattedDueDate = new Intl.DateTimeFormat('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      hour: 'numeric', 
+      minute: '2-digit' 
+    }).format(due);
+    if (due < new Date() && task.status !== 'Complete') {
+      isOverdue = true;
+    }
+  }
+
   return (
-    <div className={`p-4 rounded-lg border transition-all duration-200 shadow-sm hover:shadow-md ${config.color} bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4`}>
+    <div className={`p-4 rounded-lg border transition-all duration-200 shadow-sm hover:shadow-md ${config.color} flex flex-col sm:flex-row sm:items-center justify-between gap-4`}>
       <div className="flex items-start space-x-3">
         <StatusIcon className={`h-5 w-5 mt-0.5 shrink-0 ${config.iconColor}`} />
         <div>
-          <h3 className={`font-medium ${task.status === 'Complete' ? 'text-slate-500 line-through' : 'text-slate-800'}`}>
+          <h3 className={`font-medium ${task.status === 'Complete' ? 'text-slate-500 dark:text-slate-500 line-through' : 'text-slate-800 dark:text-slate-100'}`}>
             {task.title}
           </h3>
-          <p className="text-xs text-slate-500 mt-1 flex items-center">
-            <Clock className="h-3 w-3 mr-1" />
-            {formattedDate}
-          </p>
+          <div className="flex flex-wrap items-center gap-3 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center">
+              <Clock className="h-3 w-3 mr-1" />
+              {formattedDate}
+            </p>
+            {formattedDueDate && (
+              <p className={`text-xs flex items-center ${isOverdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
+                {isOverdue ? <AlertCircle className="h-3 w-3 mr-1" /> : <CalendarDays className="h-3 w-3 mr-1" />}
+                Due: {formattedDueDate}
+              </p>
+            )}
+          </div>
         </div>
       </div>
       
@@ -77,7 +100,7 @@ const TaskCard = ({ task }) => {
         <select
           value={task.status}
           onChange={handleStatusChange}
-          className="text-sm bg-white border border-slate-300 rounded-md py-1.5 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
+          className="text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 rounded-md py-1.5 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm transition-colors"
         >
           <option value="Planned">Planned</option>
           <option value="In Progress">In Progress</option>
@@ -85,7 +108,7 @@ const TaskCard = ({ task }) => {
         </select>
         <button
           onClick={handleDeleteTask}
-          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+          className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-slate-700 rounded-md transition-colors"
           title="Delete task"
         >
           <Trash2 className="h-4 w-4" />
